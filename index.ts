@@ -68,7 +68,7 @@ async function getLastUserMessage(transcriptPath: string): Promise<UserMessage |
 
       try {
         const parsed = JSON.parse(line)
-        if (parsed.type === "user" && parsed.message?.role === "user") {
+        if (parsed.type === "user" && parsed.message?.role === "user" && typeof parsed.message?.content === "string") {
           console.log(JSON.stringify(parsed, null, 2))
           return parsed as UserMessage
         }
@@ -180,7 +180,7 @@ async function sendPushoverNotification(config: Config, data: ClaudeNotification
   const projectName = basename(lastUserMessage.cwd)
   const userMessageContent = lastUserMessage.message.content
 
-  const message = `${projectName}: ${JSON.stringify(userMessageContent)}`
+  const message = `${projectName}: ${userMessageContent}`
   const title = `Claude Code - ${data.hook_event_name}`
 
   const pushoverData: PushoverRequest = {
