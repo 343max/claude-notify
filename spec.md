@@ -4,10 +4,10 @@ The tool will be launched and all the arguments will come as json from stdin. He
 
 ```
 {
-  "session_id": "abc123",
-  "transcript_path": "~/.claude/projects/.../00893aaf-19fa-41d2-8238-13269b9b3ca0.jsonl",
-  "message": "Task completed successfully",
-  "title": "Claude Code"
+  "session_id": "84360740-01bf-4e81-b8a5-03ae77edb675",
+  "transcript_path": "/home/max/.claude/projects/-home-max-projects-claude-notify/84360740-01bf-4e81-b8a5-03ae77edb675.jsonl",
+  "hook_event_name": "Stop",
+  "stop_hook_active": false
 }
 ```
 

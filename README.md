@@ -54,10 +54,10 @@ The tool is designed to work with Claude Code hooks. It reads JSON input from st
 
 ```json
 {
-  "session_id": "abc123",
-  "transcript_path": "~/.claude/projects/.../transcript.jsonl",
-  "message": "Task completed successfully",
-  "title": "Claude Code"
+  "session_id": "84360740-01bf-4e81-b8a5-03ae77edb675",
+  "transcript_path": "/home/max/.claude/projects/-home-max-projects-claude-notify/84360740-01bf-4e81-b8a5-03ae77edb675.jsonl",
+  "hook_event_name": "Stop",
+  "stop_hook_active": false
 }
 ```
 
@@ -74,7 +74,7 @@ bun run test
 You can also pipe JSON data directly to the tool:
 
 ```bash
-echo '{"session_id": "test", "transcript_path": "~/test.jsonl", "message": "Hello!", "title": "Test"}' | bun run index.ts
+echo '{"session_id": "test", "transcript_path": "~/test.jsonl", "hook_event_name": "Stop", "stop_hook_active": false}' | bun run index.ts
 ```
 
 ## Scripts

@@ -8,8 +8,8 @@ import { z } from 'zod';
 interface ClaudeNotificationInput {
   session_id: string;
   transcript_path: string;
-  message: string;
-  title: string;
+  hook_event_name: string;
+  stop_hook_active: boolean;
 }
 
 const ConfigSchema = z.object({
@@ -118,11 +118,17 @@ function loadConfig(): Config {
 async function sendPushoverNotification(config: Config, data: ClaudeNotificationInput): Promise<void> {
   const { PUSHOVER_API_KEY, PUSHOVER_USER_KEY } = config;
   
+  const message = data.stop_hook_active ? 
+    `Claude Code session ${data.session_id} is still active` :
+    `Claude Code session ${data.session_id} has stopped`;
+  
+  const title = `Claude Code - ${data.hook_event_name}`;
+  
   const pushoverData: PushoverRequest = {
     token: PUSHOVER_API_KEY,
     user: PUSHOVER_USER_KEY,
-    message: data.message,
-    title: data.title
+    message,
+    title
   };
   
   try {
@@ -157,11 +163,15 @@ function validateInput(input: any): ClaudeNotificationInput {
     throw new Error('Invalid input: expected JSON object');
   }
   
-  const required = ['session_id', 'transcript_path', 'message', 'title'];
-  for (const field of required) {
+  const requiredStrings = ['session_id', 'transcript_path', 'hook_event_name'];
+  for (const field of requiredStrings) {
     if (!input[field] || typeof input[field] !== 'string') {
       throw new Error(`Invalid input: ${field} is required and must be a string`);
     }
+  }
+  
+  if (typeof input.stop_hook_active !== 'boolean') {
+    throw new Error('Invalid input: stop_hook_active is required and must be a boolean');
   }
   
   return input as ClaudeNotificationInput;
