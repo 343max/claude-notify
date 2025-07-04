@@ -172,8 +172,6 @@ async function sendPushoverNotification(config: Config, data: ClaudeNotification
   const currentTime = new Date()
   const timeDifferenceSeconds = (currentTime.getTime() - messageTimestamp.getTime()) / 1000
 
-  console.log({ timeDifferenceSeconds, BUSY_TIME })
-
   if (timeDifferenceSeconds < BUSY_TIME) {
     return
   }
