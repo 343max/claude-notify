@@ -83,13 +83,15 @@ async function getLastUserMessage(transcriptPath: string): Promise<UserMessage |
   }
 }
 
-function loadConfig(): Config {
-  const configPath = join(homedir(), '.config', 'claude-notify.json');
+function loadConfig(customConfigPath?: string): Config {
+  const configPath = customConfigPath || join(homedir(), '.config', 'claude-notify.json');
   
   if (!existsSync(configPath)) {
-    console.error('❌ Configuration file not found at ~/.config/claude-notify.json');
+    console.error(`❌ Configuration file not found at ${configPath}`);
     console.error('');
     console.error('Please create this file with your Pushover API credentials:');
+    console.error('');
+    console.error('Usage: claude-notify [--config <path>]');
     console.error('');
     console.error('Example configuration:');
     console.error('{');
@@ -112,7 +114,7 @@ function loadConfig(): Config {
       console.error('❌ Invalid JSON in configuration file');
       console.error('');
       console.error('The configuration file contains invalid JSON syntax.');
-      console.error('Please check your ~/.config/claude-notify.json file and ensure it is valid JSON.');
+      console.error(`Please check your ${configPath} file and ensure it is valid JSON.`);
       console.error('');
       console.error('Example valid configuration:');
       console.error('{');
@@ -233,9 +235,36 @@ function validateInput(input: any): ClaudeNotificationInput {
   return input as ClaudeNotificationInput;
 }
 
+function parseArgs(): { configPath?: string } {
+  const args = process.argv.slice(2);
+  const result: { configPath?: string } = {};
+  
+  for (let i = 0; i < args.length; i++) {
+    const arg = args[i];
+    if (arg === '--config' && i + 1 < args.length) {
+      result.configPath = args[i + 1];
+      i++;
+    } else if (arg.startsWith('--config=')) {
+      result.configPath = arg.substring('--config='.length);
+    } else if (arg === '--help' || arg === '-h') {
+      console.log('Usage: claude-notify [options]');
+      console.log('');
+      console.log('Options:');
+      console.log('  --config <path>    Path to configuration file (default: ~/.config/claude-notify.json)');
+      console.log('  --help, -h         Show this help message');
+      console.log('');
+      console.log('Input: JSON data from stdin');
+      process.exit(0);
+    }
+  }
+  
+  return result;
+}
+
 async function main(): Promise<void> {
   try {
-    const config = loadConfig();
+    const { configPath } = parseArgs();
+    const config = loadConfig(configPath);
     const stdinContent = await readStdin();
     
     if (!stdinContent.trim()) {
