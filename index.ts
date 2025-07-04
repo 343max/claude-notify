@@ -69,7 +69,6 @@ async function getLastUserMessage(transcriptPath: string): Promise<UserMessage |
       try {
         const parsed = JSON.parse(line)
         if (parsed.type === "user" && parsed.message?.role === "user" && typeof parsed.message?.content === "string") {
-          console.log(JSON.stringify(parsed, null, 2))
           return parsed as UserMessage
         }
       } catch (parseError) {
@@ -173,6 +172,8 @@ async function sendPushoverNotification(config: Config, data: ClaudeNotification
   const currentTime = new Date()
   const timeDifferenceSeconds = (currentTime.getTime() - messageTimestamp.getTime()) / 1000
 
+  console.log({ timeDifferenceSeconds, BUSY_TIME })
+
   if (timeDifferenceSeconds < BUSY_TIME) {
     return
   }
@@ -180,8 +181,8 @@ async function sendPushoverNotification(config: Config, data: ClaudeNotification
   const projectName = basename(lastUserMessage.cwd)
   const userMessageContent = lastUserMessage.message.content
 
-  const message = `${projectName}: ${userMessageContent}`
-  const title = `Claude Code - ${data.hook_event_name}`
+  const title = `Claude Code - ${projectName}`
+  const message = `finished after ${Math.round(timeDifferenceSeconds)}s: ${userMessageContent}`
 
   const pushoverData: PushoverRequest = {
     token: PUSHOVER_API_KEY,
