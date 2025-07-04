@@ -7,7 +7,8 @@
     "start": "bun run index.ts",
     "build": "bun build index.ts --outdir ./dist --target bun",
     "dev": "bun run --watch index.ts",
-    "test": "echo '{\"session_id\": \"sample-session-123\", \"transcript_path\": \"~/.claude/projects/claude-notify/transcript.jsonl\", \"message\": \"Task completed successfully! Your notification system is working.\", \"title\": \"Claude Code - Test Notification\"}' | bun run index.ts"
+    "test": "echo '{\"session_id\": \"sample-session-123\", \"transcript_path\": \"~/.claude/projects/claude-notify/transcript.jsonl\", \"message\": \"Task completed successfully! Your notification system is working.\", \"title\": \"Claude Code - Test Notification\"}' | bun run index.ts",
+    "debug": "echo '{\"session_id\": \"debug-session-123\", \"transcript_path\": \"~/.claude/projects/claude-notify/debug.jsonl\", \"message\": \"Debug test message\", \"title\": \"Claude Code - Debug Test\"}' | ./debug-wrapper.sh"
   },
   "bin": {
     "claude-notify": "./index.ts"
