@@ -151,7 +151,6 @@ async function sendPushoverNotification(config: Config, data: ClaudeNotification
       throw new Error(`Pushover API error: ${result.errors?.join(', ') || 'Unknown error'}`);
     }
     
-    console.log('Notification sent successfully');
   } catch (error) {
     console.error('Error sending notification:', error instanceof Error ? error.message : 'Unknown error');
     process.exit(1);
