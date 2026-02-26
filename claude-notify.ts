@@ -59,7 +59,8 @@ async function readStdin(): Promise<string> {
 
 async function getLastUserMessage(transcriptPath: string): Promise<UserMessage | null> {
   try {
-    const content = readFileSync(transcriptPath, "utf8")
+    console.log(transcriptPath)
+    const content = readFileSync(transcriptPath.replace(/^~/, process.env.HOME || ""), "utf8")
     const lines = content.trim().split("\n")
 
     for (let i = lines.length - 1; i >= 0; i--) {
