@@ -4,7 +4,7 @@ import { readFileSync, existsSync } from "fs"
 import { join, basename } from "path"
 import { homedir } from "os"
 import { z } from "zod"
-import { TranscriptRecordSchema, UserMessage } from "./src/schemas/transcript"
+import { TranscriptRecordSchema } from "./src/schemas/transcript"
 import { getLastUserMessageContent } from "./src/getLastUserMessageContent"
 
 const InputSchema = z.object({
