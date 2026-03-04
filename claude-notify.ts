@@ -29,6 +29,34 @@ const ConfigSchema = z.object({
   CODE_SERVER_URL: z.string().optional(),
   CODE_SERVER_URL_TITLE: z.string().optional(),
   NOTIFICATION_TTL_MINUTES: z.number().min(1, "NOTIFICATION_TTL_MINUTES must be at least 1").optional(),
+  NOTIFICATION_SOUND: z
+    .enum([
+      "pushover",
+      "bike",
+      "bugle",
+      "cashregister",
+      "classical",
+      "cosmic",
+      "falling",
+      "gamelan",
+      "incoming",
+      "intermission",
+      "magic",
+      "mechanical",
+      "pianobar",
+      "siren",
+      "spacealarm",
+      "tugboat",
+      "alien",
+      "climb",
+      "persistent",
+      "echo",
+      "updown",
+      "vibrate",
+      "none",
+    ])
+    .optional()
+    .default("mechanical"),
 })
 
 type Config = z.infer<typeof ConfigSchema>
@@ -41,6 +69,7 @@ interface PushoverRequest {
   url?: string
   url_title?: string
   ttl?: number
+  sound?: string
 }
 
 interface PushoverResponse {
@@ -122,7 +151,8 @@ function loadConfig(customConfigPath?: string): Config {
     console.error('  "BUSY_TIME": 20,')
     console.error('  "CODE_SERVER_URL": "https://your-code-server:8443",')
     console.error('  "CODE_SERVER_URL_TITLE": "Open in Code Server",')
-    console.error('  "NOTIFICATION_TTL_MINUTES": 5')
+    console.error('  "NOTIFICATION_TTL_MINUTES": 5,')
+    console.error('  "NOTIFICATION_SOUND": "mechanical"')
     console.error("}")
     console.error("")
     console.error("Get your credentials from: https://pushover.net/")
@@ -148,7 +178,8 @@ function loadConfig(customConfigPath?: string): Config {
       console.error('  "BUSY_TIME": 20,')
       console.error('  "CODE_SERVER_URL": "https://your-code-server:8443",')
       console.error('  "CODE_SERVER_URL_TITLE": "Open in Code Server",')
-      console.error('  "NOTIFICATION_TTL_MINUTES": 5')
+      console.error('  "NOTIFICATION_TTL_MINUTES": 5,')
+    console.error('  "NOTIFICATION_SOUND": "mechanical"')
       console.error("}")
       process.exit(1)
     }
@@ -172,7 +203,8 @@ function loadConfig(customConfigPath?: string): Config {
       console.error('  "BUSY_TIME": 20,')
       console.error('  "CODE_SERVER_URL": "https://your-code-server:8443",')
       console.error('  "CODE_SERVER_URL_TITLE": "Open in Code Server",')
-      console.error('  "NOTIFICATION_TTL_MINUTES": 5')
+      console.error('  "NOTIFICATION_TTL_MINUTES": 5,')
+    console.error('  "NOTIFICATION_SOUND": "mechanical"')
       console.error("}")
       console.error("")
       console.error("Requirements:")
@@ -182,6 +214,7 @@ function loadConfig(customConfigPath?: string): Config {
       console.error("- CODE_SERVER_URL: Optional, base URL to open the project (https:// or vscode://)")
       console.error("- CODE_SERVER_URL_TITLE: Optional, label for the URL link in the notification")
       console.error("- NOTIFICATION_TTL_MINUTES: Optional, auto-delete notification after this many minutes")
+      console.error("- NOTIFICATION_SOUND: Optional, notification sound (default: mechanical). See https://pushover.net/api#sounds")
       console.error("")
       console.error("Get your credentials from: https://pushover.net/")
       process.exit(1)
@@ -237,6 +270,7 @@ async function sendPushoverNotification(config: Config, data: ClaudeNotification
     ...(url && { url }),
     ...(url && config.CODE_SERVER_URL_TITLE && { url_title: config.CODE_SERVER_URL_TITLE }),
     ...(NOTIFICATION_TTL_MINUTES && { ttl: NOTIFICATION_TTL_MINUTES * 60 }),
+    sound: config.NOTIFICATION_SOUND,
   }
 
   try {
