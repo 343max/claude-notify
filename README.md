@@ -22,6 +22,26 @@ The config format is:
 
 `NOTIFICATION_TTL_MINUTES` is optional. If set, notifications will automatically disappear from your device after this many minutes. Useful for keeping your notification tray clean after you've returned to your desk.
 
+`CODE_SERVER_URL` and `CODE_SERVER_URL_TITLE` are optional. When set, the notification includes a tappable link that opens the project directly in your editor. The URL is constructed as `{CODE_SERVER_URL}/?folder={project_path}`.
+
+For a remote **code-server** instance:
+
+```json
+{
+  "CODE_SERVER_URL": "https://your-code-server:8443",
+  "CODE_SERVER_URL_TITLE": "Open in Code Server"
+}
+```
+
+For **VS Code** on your local machine (uses the `vscode://` URI scheme):
+
+```json
+{
+  "CODE_SERVER_URL": "vscode://file/",
+  "CODE_SERVER_URL_TITLE": "Open in VS Code"
+}
+```
+
 3. run `claude`, type in `/hooks` and pick the stop hook. Then add the full path to the `claude-notify.ts` file.
 
 Afterwards you should receive a notification a long running prompt is finished. It seems to work pretty reliably for me, but the claude transcript format is a mess and I didn't write this code, so … who knows?
