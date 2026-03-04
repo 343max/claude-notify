@@ -1,4 +1,9 @@
 {
   "NTFY_URL": "https://ntfy.sh",
-  "NTFY_TOPIC": "my-claude-notifications"
+  "NTFY_TOPIC": "my-claude-notifications",
+  "NTFY_TOKEN": "your-bearer-token",
+  "NTFY_USERNAME": "your-username",
+  "NTFY_PASSWORD": "your-password",
+  "BUSY_TIME": 20,
+  "CLICK_URL_PREFIX": "https://your-code-server:8443/?folder="
 }
