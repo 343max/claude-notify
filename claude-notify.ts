@@ -4,6 +4,8 @@ import { readFileSync, existsSync } from "fs"
 import { join, basename } from "path"
 import { homedir } from "os"
 import { z } from "zod"
+import { TranscriptRecordSchema, UserMessage } from "./src/schemas/transcript"
+import { getLastUserMessageContent } from "./src/getLastUserMessageContent"
 
 const InputSchema = z.object({
   session_id: z.string(),
@@ -43,16 +45,6 @@ interface PushoverResponse {
   errors?: string[]
 }
 
-interface UserMessage {
-  type: string
-  message: {
-    role: string
-    content: string
-  }
-  timestamp: string
-  cwd: string
-}
-
 async function readStdin(): Promise<string> {
   const chunks: Buffer[] = []
   for await (const chunk of process.stdin) {
@@ -61,7 +53,28 @@ async function readStdin(): Promise<string> {
   return Buffer.concat(chunks).toString()
 }
 
-async function getLastUserMessage(transcriptPath: string): Promise<UserMessage | null> {
+function parseLine(line: string): { content: string; cwd: string; timestamp: string } | null {
+  const parsed = TranscriptRecordSchema.parse(JSON.parse(line))
+
+  if (parsed.type !== "user" || parsed.message.role !== "user") {
+    return null
+  }
+
+  const content = getLastUserMessageContent(parsed.message.content)
+  if (content === null) {
+    return null
+  } else {
+    return {
+      content,
+      cwd: parsed.cwd,
+      timestamp: parsed.timestamp,
+    }
+  }
+}
+
+async function getLastUserMessage(
+  transcriptPath: string
+): Promise<{ content: string; cwd: string; timestamp: string } | null> {
   try {
     const content = readFileSync(transcriptPath.replace(/^~/, process.env.HOME || ""), "utf8")
     const lines = content.trim().split("\n")
@@ -71,12 +84,14 @@ async function getLastUserMessage(transcriptPath: string): Promise<UserMessage |
       if (!line) continue
 
       try {
-        const parsed = JSON.parse(line)
-        if (parsed.type === "user" && parsed.message?.role === "user" && typeof parsed.message?.content === "string") {
-          return parsed as UserMessage
+        const userMessage = parseLine(line)
+        if (userMessage) {
+          return userMessage
         }
       } catch (parseError) {
-        continue
+        console.error(`Failed to parse line ${i}:`, parseError instanceof Error ? parseError.message : "Unknown error")
+        console.error("Line content:", line)
+        process.exit(1)
       }
     }
 
@@ -170,7 +185,11 @@ function loadConfig(customConfigPath?: string): Config {
 async function sendPushoverNotification(config: Config, data: ClaudeNotificationInput): Promise<void> {
   const { PUSHOVER_API_KEY, PUSHOVER_USER_KEY, BUSY_TIME } = config
 
+  console.error(data.transcript_path)
+
   const lastUserMessage = await getLastUserMessage(data.transcript_path)
+
+  console.error("Last user message:", lastUserMessage)
 
   if (!lastUserMessage) {
     return
@@ -180,12 +199,14 @@ async function sendPushoverNotification(config: Config, data: ClaudeNotification
   const currentTime = new Date()
   const timeDifferenceSeconds = (currentTime.getTime() - messageTimestamp.getTime()) / 1000
 
+  console.error(`Time since last user message: ${Math.round(timeDifferenceSeconds)}s`)
+
   if (timeDifferenceSeconds < BUSY_TIME) {
     return
   }
 
   const projectName = basename(lastUserMessage.cwd)
-  const userMessageContent = lastUserMessage.message.content
+  const userMessageContent = lastUserMessage.content
 
   const title = `Claude Code - ${projectName}`
   const prefix = `finished after ${Math.round(timeDifferenceSeconds)}s: `
@@ -194,9 +215,7 @@ async function sendPushoverNotification(config: Config, data: ClaudeNotification
     userMessageContent.length > maxContent ? userMessageContent.slice(0, maxContent - 1) + "…" : userMessageContent
   const message = prefix + truncated
 
-  const url = config.CODE_SERVER_URL
-    ? `${config.CODE_SERVER_URL}/?folder=${lastUserMessage.cwd}`
-    : undefined
+  const url = config.CODE_SERVER_URL ? `${config.CODE_SERVER_URL}/?folder=${lastUserMessage.cwd}` : undefined
 
   const pushoverData: PushoverRequest = {
     token: PUSHOVER_API_KEY,
@@ -266,8 +285,6 @@ async function main(): Promise<void> {
     const config = loadConfig(configPath)
     const stdinContent = await readStdin()
 
-    console.error(stdinContent)
-
     if (!stdinContent.trim()) {
       console.error("No input received from stdin")
       process.exit(1)
@@ -277,6 +294,7 @@ async function main(): Promise<void> {
     const inputData = validateInput(rawInput)
 
     await sendPushoverNotification(config, inputData)
+    console.error("done")
   } catch (error) {
     console.error("Error:", error instanceof Error ? error.message : "Unknown error")
     process.exit(1)
