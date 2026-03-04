@@ -238,11 +238,8 @@ async function sendNtfyNotification(config: Config, data: ClaudeNotificationInpu
         ? "Permission Request"
         : "Claude Code"
   const title = `${titlePrefix} - ${projectName}`
-  const prefix = `finished after ${Math.round(timeDifferenceSeconds)}s: `
-  const maxContent = 4096 - prefix.length
-  const truncated =
-    userMessageContent.length > maxContent ? userMessageContent.slice(0, maxContent - 1) + "…" : userMessageContent
-  const message = prefix + truncated
+  const message =
+    userMessageContent.length > 4096 ? userMessageContent.slice(0, 4095) + "…" : userMessageContent
 
   const headers: Record<string, string> = {
     "Content-Type": "text/plain",
