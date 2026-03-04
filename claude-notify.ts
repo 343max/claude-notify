@@ -24,6 +24,7 @@ const ConfigSchema = z.object({
     .min(1, "PUSHOVER_USER_KEY cannot be empty")
     .regex(/^[a-zA-Z0-9]+$/, "PUSHOVER_USER_KEY must contain only alphanumeric characters"),
   BUSY_TIME: z.number().min(1, "BUSY_TIME must be at least 1 second").optional().default(20),
+  CODE_SERVER_URL: z.string().url().optional(),
 })
 
 type Config = z.infer<typeof ConfigSchema>
@@ -33,6 +34,7 @@ interface PushoverRequest {
   user: string
   message: string
   title: string
+  url?: string
 }
 
 interface PushoverResponse {
@@ -98,7 +100,8 @@ function loadConfig(customConfigPath?: string): Config {
     console.error("{")
     console.error('  "PUSHOVER_API_KEY": "your_app_token_here",')
     console.error('  "PUSHOVER_USER_KEY": "your_user_key_here",')
-    console.error('  "BUSY_TIME": 20')
+    console.error('  "BUSY_TIME": 20,')
+    console.error('  "CODE_SERVER_URL": "https://your-code-server:8443"')
     console.error("}")
     console.error("")
     console.error("Get your credentials from: https://pushover.net/")
@@ -121,7 +124,8 @@ function loadConfig(customConfigPath?: string): Config {
       console.error("{")
       console.error('  "PUSHOVER_API_KEY": "your_app_token_here",')
       console.error('  "PUSHOVER_USER_KEY": "your_user_key_here",')
-      console.error('  "BUSY_TIME": 20')
+      console.error('  "BUSY_TIME": 20,')
+      console.error('  "CODE_SERVER_URL": "https://your-code-server:8443"')
       console.error("}")
       process.exit(1)
     }
@@ -142,13 +146,15 @@ function loadConfig(customConfigPath?: string): Config {
       console.error("{")
       console.error('  "PUSHOVER_API_KEY": "your_app_token_here",')
       console.error('  "PUSHOVER_USER_KEY": "your_user_key_here",')
-      console.error('  "BUSY_TIME": 20')
+      console.error('  "BUSY_TIME": 20,')
+      console.error('  "CODE_SERVER_URL": "https://your-code-server:8443"')
       console.error("}")
       console.error("")
       console.error("Requirements:")
       console.error("- PUSHOVER_API_KEY: Required, must be alphanumeric (app token)")
       console.error("- PUSHOVER_USER_KEY: Required, must be alphanumeric (user key)")
       console.error("- BUSY_TIME: Optional, minimum delay in seconds (default: 20)")
+      console.error("- CODE_SERVER_URL: Optional, base URL for code-server (e.g. https://host:8443)")
       console.error("")
       console.error("Get your credentials from: https://pushover.net/")
       process.exit(1)
@@ -184,14 +190,20 @@ async function sendPushoverNotification(config: Config, data: ClaudeNotification
   const title = `Claude Code - ${projectName}`
   const prefix = `finished after ${Math.round(timeDifferenceSeconds)}s: `
   const maxContent = 1024 - prefix.length
-  const truncated = userMessageContent.length > maxContent ? userMessageContent.slice(0, maxContent - 1) + "…" : userMessageContent
+  const truncated =
+    userMessageContent.length > maxContent ? userMessageContent.slice(0, maxContent - 1) + "…" : userMessageContent
   const message = prefix + truncated
+
+  const url = config.CODE_SERVER_URL
+    ? `${config.CODE_SERVER_URL}/?folder=${lastUserMessage.cwd}`
+    : undefined
 
   const pushoverData: PushoverRequest = {
     token: PUSHOVER_API_KEY,
     user: PUSHOVER_USER_KEY,
     message,
     title,
+    ...(url && { url }),
   }
 
   try {
@@ -253,6 +265,8 @@ async function main(): Promise<void> {
     const { configPath } = parseArgs()
     const config = loadConfig(configPath)
     const stdinContent = await readStdin()
+
+    console.error(stdinContent)
 
     if (!stdinContent.trim()) {
       console.error("No input received from stdin")
