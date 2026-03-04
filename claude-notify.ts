@@ -5,12 +5,14 @@ import { join, basename } from "path"
 import { homedir } from "os"
 import { z } from "zod"
 
-interface ClaudeNotificationInput {
-  session_id: string
-  transcript_path: string
-  hook_event_name: string
-  stop_hook_active: boolean
-}
+const InputSchema = z.object({
+  session_id: z.string(),
+  transcript_path: z.string(),
+  hook_event_name: z.string(),
+  stop_hook_active: z.boolean(),
+})
+
+type ClaudeNotificationInput = z.infer<typeof InputSchema>
 
 const ConfigSchema = z.object({
   PUSHOVER_API_KEY: z
@@ -59,7 +61,6 @@ async function readStdin(): Promise<string> {
 
 async function getLastUserMessage(transcriptPath: string): Promise<UserMessage | null> {
   try {
-    console.log(transcriptPath)
     const content = readFileSync(transcriptPath.replace(/^~/, process.env.HOME || ""), "utf8")
     const lines = content.trim().split("\n")
 
@@ -181,7 +182,10 @@ async function sendPushoverNotification(config: Config, data: ClaudeNotification
   const userMessageContent = lastUserMessage.message.content
 
   const title = `Claude Code - ${projectName}`
-  const message = `finished after ${Math.round(timeDifferenceSeconds)}s: ${userMessageContent}`
+  const prefix = `finished after ${Math.round(timeDifferenceSeconds)}s: `
+  const maxContent = 1024 - prefix.length
+  const truncated = userMessageContent.length > maxContent ? userMessageContent.slice(0, maxContent - 1) + "…" : userMessageContent
+  const message = prefix + truncated
 
   const pushoverData: PushoverRequest = {
     token: PUSHOVER_API_KEY,
@@ -211,27 +215,11 @@ async function sendPushoverNotification(config: Config, data: ClaudeNotification
     }
   } catch (error) {
     console.error("Error sending notification:", error instanceof Error ? error.message : "Unknown error")
-    process.exit(1)
   }
 }
 
-function validateInput(input: any): ClaudeNotificationInput {
-  if (!input || typeof input !== "object") {
-    throw new Error("Invalid input: expected JSON object")
-  }
-
-  const requiredStrings = ["session_id", "transcript_path", "hook_event_name"]
-  for (const field of requiredStrings) {
-    if (!input[field] || typeof input[field] !== "string") {
-      throw new Error(`Invalid input: ${field} is required and must be a string`)
-    }
-  }
-
-  if (typeof input.stop_hook_active !== "boolean") {
-    throw new Error("Invalid input: stop_hook_active is required and must be a boolean")
-  }
-
-  return input as ClaudeNotificationInput
+function validateInput(input: unknown): ClaudeNotificationInput {
+  return InputSchema.parse(input)
 }
 
 function parseArgs(): { configPath?: string } {
