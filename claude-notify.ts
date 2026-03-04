@@ -138,24 +138,27 @@ function loadConfig(customConfigPath?: string): Config {
   const configPath = customConfigPath || join(homedir(), ".config", "claude-notify.json")
 
   if (!existsSync(configPath)) {
-    console.error(`❌ Configuration file not found at ${configPath}`)
-    console.error("")
-    console.error("Please create this file with your Pushover API credentials:")
-    console.error("")
-    console.error("Usage: claude-notify [--config <path>]")
-    console.error("")
-    console.error("Example configuration:")
-    console.error("{")
-    console.error('  "PUSHOVER_API_KEY": "your_app_token_here",')
-    console.error('  "PUSHOVER_USER_KEY": "your_user_key_here",')
-    console.error('  "BUSY_TIME": 20,')
-    console.error('  "CODE_SERVER_URL": "https://your-code-server:8443",')
-    console.error('  "CODE_SERVER_URL_TITLE": "Open in Code Server",')
-    console.error('  "NOTIFICATION_TTL_MINUTES": 5,')
-    console.error('  "NOTIFICATION_SOUND": "mechanical"')
-    console.error("}")
-    console.error("")
-    console.error("Get your credentials from: https://pushover.net/")
+    console.error([
+      `❌ Configuration file not found at ${configPath}`,
+      "",
+      "Please create this file with your Pushover API credentials:",
+      "",
+      "Usage: claude-notify [--config <path>]",
+      "",
+      "Example configuration:",
+      "{",
+      '  "PUSHOVER_API_KEY": "your_app_token_here",',
+      '  "PUSHOVER_USER_KEY": "your_user_key_here",',
+      '  "BUSY_TIME": 20,',
+      '  "CODE_SERVER_URL": "https://your-code-server:8443",',
+      '  "CODE_SERVER_URL_TITLE": "Open in Code Server",',
+      '  "NOTIFICATION_TTL_MINUTES": 5,',
+      '  "NOTIFICATION_SOUND": "mechanical"',
+      "}",
+      "",
+      "Get your credentials from: https://pushover.net/",
+      "",
+    ].join("\n"))
     process.exit(1)
   }
 
@@ -166,59 +169,59 @@ function loadConfig(customConfigPath?: string): Config {
     try {
       parsedConfig = JSON.parse(configContent)
     } catch (parseError) {
-      console.error("❌ Invalid JSON in configuration file")
-      console.error("")
-      console.error("The configuration file contains invalid JSON syntax.")
-      console.error(`Please check your ${configPath} file and ensure it is valid JSON.`)
-      console.error("")
-      console.error("Example valid configuration:")
-      console.error("{")
-      console.error('  "PUSHOVER_API_KEY": "your_app_token_here",')
-      console.error('  "PUSHOVER_USER_KEY": "your_user_key_here",')
-      console.error('  "BUSY_TIME": 20,')
-      console.error('  "CODE_SERVER_URL": "https://your-code-server:8443",')
-      console.error('  "CODE_SERVER_URL_TITLE": "Open in Code Server",')
-      console.error('  "NOTIFICATION_TTL_MINUTES": 5,')
-      console.error('  "NOTIFICATION_SOUND": "mechanical"')
-      console.error("}")
+      console.error([
+        "❌ Invalid JSON in configuration file",
+        "",
+        "The configuration file contains invalid JSON syntax.",
+        `Please check your ${configPath} file and ensure it is valid JSON.`,
+        "",
+        "Example valid configuration:",
+        "{",
+        '  "PUSHOVER_API_KEY": "your_app_token_here",',
+        '  "PUSHOVER_USER_KEY": "your_user_key_here",',
+        '  "BUSY_TIME": 20,',
+        '  "CODE_SERVER_URL": "https://your-code-server:8443",',
+        '  "CODE_SERVER_URL_TITLE": "Open in Code Server",',
+        '  "NOTIFICATION_TTL_MINUTES": 5,',
+        '  "NOTIFICATION_SOUND": "mechanical"',
+        "}",
+        "",
+      ].join("\n"))
       process.exit(1)
     }
 
     const validationResult = ConfigSchema.safeParse(parsedConfig)
 
     if (!validationResult.success) {
-      console.error("❌ Invalid configuration")
-      console.error("")
-      console.error("The following configuration errors were found:")
-
-      validationResult.error.errors.forEach((error, index) => {
-        console.error(`  ${index + 1}. ${error.path.join(".")}: ${error.message}`)
-      })
-
-      console.error("")
-      console.error("Expected configuration format:")
-      console.error("{")
-      console.error('  "PUSHOVER_API_KEY": "your_app_token_here",')
-      console.error('  "PUSHOVER_USER_KEY": "your_user_key_here",')
-      console.error('  "BUSY_TIME": 20,')
-      console.error('  "CODE_SERVER_URL": "https://your-code-server:8443",')
-      console.error('  "CODE_SERVER_URL_TITLE": "Open in Code Server",')
-      console.error('  "NOTIFICATION_TTL_MINUTES": 5,')
-      console.error('  "NOTIFICATION_SOUND": "mechanical"')
-      console.error("}")
-      console.error("")
-      console.error("Requirements:")
-      console.error("- PUSHOVER_API_KEY: Required, must be alphanumeric (app token)")
-      console.error("- PUSHOVER_USER_KEY: Required, must be alphanumeric (user key)")
-      console.error("- BUSY_TIME: Optional, minimum delay in seconds (default: 20)")
-      console.error("- CODE_SERVER_URL: Optional, base URL to open the project (https:// or vscode://)")
-      console.error("- CODE_SERVER_URL_TITLE: Optional, label for the URL link in the notification")
-      console.error("- NOTIFICATION_TTL_MINUTES: Optional, auto-delete notification after this many minutes")
-      console.error(
-        "- NOTIFICATION_SOUND: Optional, notification sound (default: mechanical). See https://pushover.net/api#sounds"
-      )
-      console.error("")
-      console.error("Get your credentials from: https://pushover.net/")
+      console.error([
+        "❌ Invalid configuration",
+        "",
+        "The following configuration errors were found:",
+        ...validationResult.error.errors.map((error, index) => `  ${index + 1}. ${error.path.join(".")}: ${error.message}`),
+        "",
+        "Expected configuration format:",
+        "{",
+        '  "PUSHOVER_API_KEY": "your_app_token_here",',
+        '  "PUSHOVER_USER_KEY": "your_user_key_here",',
+        '  "BUSY_TIME": 20,',
+        '  "CODE_SERVER_URL": "https://your-code-server:8443",',
+        '  "CODE_SERVER_URL_TITLE": "Open in Code Server",',
+        '  "NOTIFICATION_TTL_MINUTES": 5,',
+        '  "NOTIFICATION_SOUND": "mechanical"',
+        "}",
+        "",
+        "Requirements:",
+        "- PUSHOVER_API_KEY: Required, must be alphanumeric (app token)",
+        "- PUSHOVER_USER_KEY: Required, must be alphanumeric (user key)",
+        "- BUSY_TIME: Optional, minimum delay in seconds (default: 20)",
+        "- CODE_SERVER_URL: Optional, base URL to open the project (https:// or vscode://)",
+        "- CODE_SERVER_URL_TITLE: Optional, label for the URL link in the notification",
+        "- NOTIFICATION_TTL_MINUTES: Optional, auto-delete notification after this many minutes",
+        "- NOTIFICATION_SOUND: Optional, notification sound (default: mechanical). See https://pushover.net/api#sounds",
+        "",
+        "Get your credentials from: https://pushover.net/",
+        "",
+      ].join("\n"))
       process.exit(1)
     }
 
@@ -315,13 +318,16 @@ function parseArgs(): { configPath?: string } {
     } else if (arg.startsWith("--config=")) {
       result.configPath = arg.substring("--config=".length)
     } else if (arg === "--help" || arg === "-h") {
-      console.log("Usage: claude-notify [options]")
-      console.log("")
-      console.log("Options:")
-      console.log("  --config <path>    Path to configuration file (default: ~/.config/claude-notify.json)")
-      console.log("  --help, -h         Show this help message")
-      console.log("")
-      console.log("Input: JSON data from stdin")
+      console.log([
+        "Usage: claude-notify [options]",
+        "",
+        "Options:",
+        "  --config <path>    Path to configuration file (default: ~/.config/claude-notify.json)",
+        "  --help, -h         Show this help message",
+        "",
+        "Input: JSON data from stdin",
+        "",
+      ].join("\n"))
       process.exit(0)
     }
   }
