@@ -179,7 +179,7 @@ function loadConfig(customConfigPath?: string): Config {
       console.error('  "CODE_SERVER_URL": "https://your-code-server:8443",')
       console.error('  "CODE_SERVER_URL_TITLE": "Open in Code Server",')
       console.error('  "NOTIFICATION_TTL_MINUTES": 5,')
-    console.error('  "NOTIFICATION_SOUND": "mechanical"')
+      console.error('  "NOTIFICATION_SOUND": "mechanical"')
       console.error("}")
       process.exit(1)
     }
@@ -204,7 +204,7 @@ function loadConfig(customConfigPath?: string): Config {
       console.error('  "CODE_SERVER_URL": "https://your-code-server:8443",')
       console.error('  "CODE_SERVER_URL_TITLE": "Open in Code Server",')
       console.error('  "NOTIFICATION_TTL_MINUTES": 5,')
-    console.error('  "NOTIFICATION_SOUND": "mechanical"')
+      console.error('  "NOTIFICATION_SOUND": "mechanical"')
       console.error("}")
       console.error("")
       console.error("Requirements:")
@@ -214,7 +214,9 @@ function loadConfig(customConfigPath?: string): Config {
       console.error("- CODE_SERVER_URL: Optional, base URL to open the project (https:// or vscode://)")
       console.error("- CODE_SERVER_URL_TITLE: Optional, label for the URL link in the notification")
       console.error("- NOTIFICATION_TTL_MINUTES: Optional, auto-delete notification after this many minutes")
-      console.error("- NOTIFICATION_SOUND: Optional, notification sound (default: mechanical). See https://pushover.net/api#sounds")
+      console.error(
+        "- NOTIFICATION_SOUND: Optional, notification sound (default: mechanical). See https://pushover.net/api#sounds"
+      )
       console.error("")
       console.error("Get your credentials from: https://pushover.net/")
       process.exit(1)
@@ -337,6 +339,8 @@ async function main(): Promise<void> {
       console.error("No input received from stdin")
       process.exit(1)
     }
+
+    console.error("Received input:", stdinContent)
 
     const rawInput = JSON.parse(stdinContent)
     const inputData = validateInput(rawInput)
