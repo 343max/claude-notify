@@ -27,6 +27,7 @@ const ConfigSchema = z.object({
     .regex(/^[a-zA-Z0-9]+$/, "PUSHOVER_USER_KEY must contain only alphanumeric characters"),
   BUSY_TIME: z.number().min(1, "BUSY_TIME must be at least 1 second").optional().default(20),
   CODE_SERVER_URL: z.string().url().optional(),
+  NOTIFICATION_TTL_MINUTES: z.number().min(1, "NOTIFICATION_TTL_MINUTES must be at least 1").optional(),
 })
 
 type Config = z.infer<typeof ConfigSchema>
@@ -37,6 +38,7 @@ interface PushoverRequest {
   message: string
   title: string
   url?: string
+  ttl?: number
 }
 
 interface PushoverResponse {
@@ -116,7 +118,8 @@ function loadConfig(customConfigPath?: string): Config {
     console.error('  "PUSHOVER_API_KEY": "your_app_token_here",')
     console.error('  "PUSHOVER_USER_KEY": "your_user_key_here",')
     console.error('  "BUSY_TIME": 20,')
-    console.error('  "CODE_SERVER_URL": "https://your-code-server:8443"')
+    console.error('  "CODE_SERVER_URL": "https://your-code-server:8443",')
+    console.error('  "NOTIFICATION_TTL_MINUTES": 5')
     console.error("}")
     console.error("")
     console.error("Get your credentials from: https://pushover.net/")
@@ -140,7 +143,8 @@ function loadConfig(customConfigPath?: string): Config {
       console.error('  "PUSHOVER_API_KEY": "your_app_token_here",')
       console.error('  "PUSHOVER_USER_KEY": "your_user_key_here",')
       console.error('  "BUSY_TIME": 20,')
-      console.error('  "CODE_SERVER_URL": "https://your-code-server:8443"')
+      console.error('  "CODE_SERVER_URL": "https://your-code-server:8443",')
+      console.error('  "NOTIFICATION_TTL_MINUTES": 5')
       console.error("}")
       process.exit(1)
     }
@@ -162,7 +166,8 @@ function loadConfig(customConfigPath?: string): Config {
       console.error('  "PUSHOVER_API_KEY": "your_app_token_here",')
       console.error('  "PUSHOVER_USER_KEY": "your_user_key_here",')
       console.error('  "BUSY_TIME": 20,')
-      console.error('  "CODE_SERVER_URL": "https://your-code-server:8443"')
+      console.error('  "CODE_SERVER_URL": "https://your-code-server:8443",')
+      console.error('  "NOTIFICATION_TTL_MINUTES": 5')
       console.error("}")
       console.error("")
       console.error("Requirements:")
@@ -170,6 +175,7 @@ function loadConfig(customConfigPath?: string): Config {
       console.error("- PUSHOVER_USER_KEY: Required, must be alphanumeric (user key)")
       console.error("- BUSY_TIME: Optional, minimum delay in seconds (default: 20)")
       console.error("- CODE_SERVER_URL: Optional, base URL for code-server (e.g. https://host:8443)")
+      console.error("- NOTIFICATION_TTL_MINUTES: Optional, auto-delete notification after this many minutes")
       console.error("")
       console.error("Get your credentials from: https://pushover.net/")
       process.exit(1)
@@ -183,7 +189,7 @@ function loadConfig(customConfigPath?: string): Config {
 }
 
 async function sendPushoverNotification(config: Config, data: ClaudeNotificationInput): Promise<void> {
-  const { PUSHOVER_API_KEY, PUSHOVER_USER_KEY, BUSY_TIME } = config
+  const { PUSHOVER_API_KEY, PUSHOVER_USER_KEY, BUSY_TIME, NOTIFICATION_TTL_MINUTES } = config
 
   console.error(data.transcript_path)
 
@@ -223,6 +229,7 @@ async function sendPushoverNotification(config: Config, data: ClaudeNotification
     message,
     title,
     ...(url && { url }),
+    ...(NOTIFICATION_TTL_MINUTES && { ttl: NOTIFICATION_TTL_MINUTES * 60 }),
   }
 
   try {
@@ -294,7 +301,6 @@ async function main(): Promise<void> {
     const inputData = validateInput(rawInput)
 
     await sendPushoverNotification(config, inputData)
-    console.error("done")
   } catch (error) {
     console.error("Error:", error instanceof Error ? error.message : "Unknown error")
     process.exit(1)
