@@ -1,53 +1,75 @@
 # Claude Notify
 
-A command-line notification tool that integrates with Claude Code hooks to send notifications via Pushover when tasks complete.
+A command-line notification tool that integrates with Claude Code hooks to send notifications via [ntfy](https://ntfy.sh) when tasks complete.
 
 # Installation
 
-1. you need [bun](https://bun.sh)
-2. create `~/.config/claude-notify.json`
+1. You need [bun](https://bun.sh)
+2. Create `~/.config/claude-notify.json`
 
-The config format is:
+The minimum config is:
 
 ```json
 {
-  "PUSHOVER_API_KEY": "Pushover API key",
-  "PUSHOVER_USER_KEY": "User Key",
-  "BUSY_TIME": 12,
-  "NOTIFICATION_TTL_MINUTES": 5,
-  "NOTIFICATION_SOUND": "mechanical"
+  "NTFY_URL": "https://ntfy.sh",
+  "NTFY_TOPIC": "my-claude-notifications"
 }
 ```
 
-`BUSY_TIME` is the time in seconds how long a prompt has to run before you will get notified. 12 seconds seems to be the sweetspot for me where I start to stop looking at the claude output and drift off.
+## Config options
 
-`NOTIFICATION_TTL_MINUTES` is optional. If set, notifications will automatically disappear from your device after this many minutes. Useful for keeping your notification tray clean after you've returned to your desk.
+`NTFY_URL` — Base URL of your ntfy server. Use `https://ntfy.sh` for the public instance or your self-hosted URL.
 
-`NOTIFICATION_SOUND` controls the notification sound (default: `mechanical`). See [all available sounds](https://pushover.net/api#sounds).
+`NTFY_TOPIC` — The topic name to publish notifications to.
 
-`CODE_SERVER_URL` and `CODE_SERVER_URL_TITLE` are optional. When set, the notification includes a tappable link that opens the project directly in your editor. The URL is constructed as `{CODE_SERVER_URL}/?folder={project_path}`.
+`BUSY_TIME` — Time in seconds a prompt has to run before you get notified (default: `20`). 20 seconds is the sweetspot for when you start drifting away from the output.
+
+### Authorization
+
+For self-hosted ntfy instances with access control, use a Bearer token:
+
+```json
+{
+  "NTFY_URL": "https://ntfy.example.com",
+  "NTFY_TOPIC": "claude",
+  "NTFY_TOKEN": "your-bearer-token"
+}
+```
+
+Or Basic auth credentials:
+
+```json
+{
+  "NTFY_USERNAME": "your-username",
+  "NTFY_PASSWORD": "your-password"
+}
+```
+
+### Click URL
+
+`CLICK_URL_PREFIX` — Optional. When set, the notification includes a tappable link. The value is used as a URL prefix and the project path (`cwd`) is appended directly — so include any path/query separator in the prefix itself.
 
 For a remote **code-server** instance:
 
 ```json
 {
-  "CODE_SERVER_URL": "https://your-code-server:8443",
-  "CODE_SERVER_URL_TITLE": "Open in Code Server"
+  "CLICK_URL_PREFIX": "https://your-code-server:8443/?folder="
 }
 ```
 
-For **VS Code** on your local machine (uses the `vscode://` URI scheme):
+For **VS Code** on your local machine:
 
 ```json
 {
-  "CODE_SERVER_URL": "vscode://file/",
-  "CODE_SERVER_URL_TITLE": "Open in VS Code"
+  "CLICK_URL_PREFIX": "vscode://file/"
 }
 ```
 
-3. run `claude`, type in `/hooks` and pick the stop hook. Then add the full path to the `claude-notify.ts` file.
+## Setup
 
-Afterwards you should receive a notification a long running prompt is finished. It seems to work pretty reliably for me, but the claude transcript format is a mess and I didn't write this code, so … who knows?
+3. Run `claude`, type `/hooks` and pick the stop hook. Add the full path to `claude-notify.ts`.
+
+Afterwards you should receive a notification when a long-running prompt finishes.
 
 ## License
 

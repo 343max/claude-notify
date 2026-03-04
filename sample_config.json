@@ -1,3 +1,4 @@
 {
-  "PUSHOVER_API_KEY": "abc"
+  "NTFY_URL": "https://ntfy.sh",
+  "NTFY_TOPIC": "my-claude-notifications"
 }

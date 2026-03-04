@@ -19,67 +19,22 @@ const InputSchema = z.object({
 
 type ClaudeNotificationInput = z.infer<typeof InputSchema>
 
-const ConfigSchema = z.object({
-  PUSHOVER_API_KEY: z
-    .string()
-    .min(1, "PUSHOVER_API_KEY cannot be empty")
-    .regex(/^[a-zA-Z0-9]+$/, "PUSHOVER_API_KEY must contain only alphanumeric characters"),
-  PUSHOVER_USER_KEY: z
-    .string()
-    .min(1, "PUSHOVER_USER_KEY cannot be empty")
-    .regex(/^[a-zA-Z0-9]+$/, "PUSHOVER_USER_KEY must contain only alphanumeric characters"),
-  BUSY_TIME: z.number().min(1, "BUSY_TIME must be at least 1 second").optional().default(20),
-  CODE_SERVER_URL: z.string().optional(),
-  CODE_SERVER_URL_TITLE: z.string().optional(),
-  NOTIFICATION_TTL_MINUTES: z.number().min(1, "NOTIFICATION_TTL_MINUTES must be at least 1").optional(),
-  NOTIFICATION_SOUND: z
-    .enum([
-      "pushover",
-      "bike",
-      "bugle",
-      "cashregister",
-      "classical",
-      "cosmic",
-      "falling",
-      "gamelan",
-      "incoming",
-      "intermission",
-      "magic",
-      "mechanical",
-      "pianobar",
-      "siren",
-      "spacealarm",
-      "tugboat",
-      "alien",
-      "climb",
-      "persistent",
-      "echo",
-      "updown",
-      "vibrate",
-      "none",
-    ])
-    .optional()
-    .default("mechanical"),
-})
+const ConfigSchema = z
+  .object({
+    NTFY_URL: z.string().min(1, "NTFY_URL cannot be empty").url("NTFY_URL must be a valid URL"),
+    NTFY_TOPIC: z.string().min(1, "NTFY_TOPIC cannot be empty"),
+    NTFY_TOKEN: z.string().optional(),
+    NTFY_USERNAME: z.string().optional(),
+    NTFY_PASSWORD: z.string().optional(),
+    BUSY_TIME: z.number().min(1, "BUSY_TIME must be at least 1 second").optional().default(20),
+    CLICK_URL_PREFIX: z.string().optional(),
+  })
+  .refine((data) => !data.NTFY_USERNAME || !!data.NTFY_PASSWORD, {
+    message: "NTFY_PASSWORD is required when NTFY_USERNAME is set",
+    path: ["NTFY_PASSWORD"],
+  })
 
 type Config = z.infer<typeof ConfigSchema>
-
-interface PushoverRequest {
-  token: string
-  user: string
-  message: string
-  title: string
-  url?: string
-  url_title?: string
-  ttl?: number
-  sound?: string
-}
-
-interface PushoverResponse {
-  status: number
-  request: string
-  errors?: string[]
-}
 
 async function readStdin(): Promise<string> {
   const chunks: Buffer[] = []
@@ -145,22 +100,20 @@ function loadConfig(customConfigPath?: string): Config {
       [
         `❌ Configuration file not found at ${configPath}`,
         "",
-        "Please create this file with your Pushover API credentials:",
+        "Please create this file with your ntfy configuration:",
         "",
         "Usage: claude-notify [--config <path>]",
         "",
         "Example configuration:",
         "{",
-        '  "PUSHOVER_API_KEY": "your_app_token_here",',
-        '  "PUSHOVER_USER_KEY": "your_user_key_here",',
+        '  "NTFY_URL": "https://ntfy.sh",',
+        '  "NTFY_TOPIC": "my-claude-notifications",',
         '  "BUSY_TIME": 20,',
-        '  "CODE_SERVER_URL": "https://your-code-server:8443",',
-        '  "CODE_SERVER_URL_TITLE": "Open in Code Server",',
-        '  "NOTIFICATION_TTL_MINUTES": 5,',
-        '  "NOTIFICATION_SOUND": "mechanical"',
+        '  "CLICK_URL_PREFIX": "https://your-code-server:8443/?folder=",',
+        '  "CLICK_URL_TITLE": "Open in Code Server"',
         "}",
         "",
-        "Get your credentials from: https://pushover.net/",
+        "Get started with ntfy at: https://ntfy.sh/",
         "",
       ].join("\n")
     )
@@ -183,13 +136,11 @@ function loadConfig(customConfigPath?: string): Config {
           "",
           "Example valid configuration:",
           "{",
-          '  "PUSHOVER_API_KEY": "your_app_token_here",',
-          '  "PUSHOVER_USER_KEY": "your_user_key_here",',
+          '  "NTFY_URL": "https://ntfy.sh",',
+          '  "NTFY_TOPIC": "my-claude-notifications",',
           '  "BUSY_TIME": 20,',
-          '  "CODE_SERVER_URL": "https://your-code-server:8443",',
-          '  "CODE_SERVER_URL_TITLE": "Open in Code Server",',
-          '  "NOTIFICATION_TTL_MINUTES": 5,',
-          '  "NOTIFICATION_SOUND": "mechanical"',
+          '  "CLICK_URL_PREFIX": "https://your-code-server:8443/?folder=",',
+          '  "CLICK_URL_TITLE": "Open in Code Server"',
           "}",
           "",
         ].join("\n")
@@ -211,25 +162,24 @@ function loadConfig(customConfigPath?: string): Config {
           "",
           "Expected configuration format:",
           "{",
-          '  "PUSHOVER_API_KEY": "your_app_token_here",',
-          '  "PUSHOVER_USER_KEY": "your_user_key_here",',
+          '  "NTFY_URL": "https://ntfy.sh",',
+          '  "NTFY_TOPIC": "my-claude-notifications",',
+          '  "NTFY_TOKEN": "your-bearer-token",',
           '  "BUSY_TIME": 20,',
-          '  "CODE_SERVER_URL": "https://your-code-server:8443",',
-          '  "CODE_SERVER_URL_TITLE": "Open in Code Server",',
-          '  "NOTIFICATION_TTL_MINUTES": 5,',
-          '  "NOTIFICATION_SOUND": "mechanical"',
+          '  "CLICK_URL_PREFIX": "https://your-code-server:8443/?folder=",',
+          '  "CLICK_URL_TITLE": "Open in Code Server"',
           "}",
           "",
           "Requirements:",
-          "- PUSHOVER_API_KEY: Required, must be alphanumeric (app token)",
-          "- PUSHOVER_USER_KEY: Required, must be alphanumeric (user key)",
-          "- BUSY_TIME: Optional, minimum delay in seconds (default: 20)",
-          "- CODE_SERVER_URL: Optional, base URL to open the project (https:// or vscode://)",
-          "- CODE_SERVER_URL_TITLE: Optional, label for the URL link in the notification",
-          "- NOTIFICATION_TTL_MINUTES: Optional, auto-delete notification after this many minutes",
-          "- NOTIFICATION_SOUND: Optional, notification sound (default: mechanical). See https://pushover.net/api#sounds",
+          "- NTFY_URL: Required, must be a valid URL (e.g. https://ntfy.sh or your self-hosted instance)",
+          "- NTFY_TOPIC: Required, the topic name to publish notifications to",
+          "- NTFY_TOKEN: Optional, Bearer token for authorization",
+          "- NTFY_USERNAME / NTFY_PASSWORD: Optional, Basic auth credentials (both required if used)",
+          "- BUSY_TIME: Optional, minimum delay in seconds before notifying (default: 20)",
+          "- CLICK_URL_PREFIX: Optional, URL prefix for a tappable link in the notification (cwd is appended)",
+          "- CLICK_URL_TITLE: Optional, label for the link in the notification",
           "",
-          "Get your credentials from: https://pushover.net/",
+          "Get started with ntfy at: https://ntfy.sh/",
           "",
         ].join("\n")
       )
@@ -243,14 +193,10 @@ function loadConfig(customConfigPath?: string): Config {
   }
 }
 
-async function sendPushoverNotification(config: Config, data: ClaudeNotificationInput): Promise<void> {
-  const { PUSHOVER_API_KEY, PUSHOVER_USER_KEY, BUSY_TIME, NOTIFICATION_TTL_MINUTES } = config
-
-  console.error(data.transcript_path)
+async function sendNtfyNotification(config: Config, data: ClaudeNotificationInput): Promise<void> {
+  const { NTFY_URL, NTFY_TOPIC, BUSY_TIME } = config
 
   const lastUserMessage = await getLastUserMessage(data.transcript_path)
-
-  console.error("Last user message:", lastUserMessage)
 
   if (!lastUserMessage) {
     return
@@ -259,8 +205,6 @@ async function sendPushoverNotification(config: Config, data: ClaudeNotification
   const messageTimestamp = new Date(lastUserMessage.timestamp)
   const currentTime = new Date()
   const timeDifferenceSeconds = (currentTime.getTime() - messageTimestamp.getTime()) / 1000
-
-  console.error(`Time since last user message: ${Math.round(timeDifferenceSeconds)}s`)
 
   if (timeDifferenceSeconds < BUSY_TIME) {
     return
@@ -271,46 +215,45 @@ async function sendPushoverNotification(config: Config, data: ClaudeNotification
 
   const title = `Claude Code - ${projectName}`
   const prefix = `finished after ${Math.round(timeDifferenceSeconds)}s: `
-  const maxContent = 1024 - prefix.length
+  const maxContent = 4096 - prefix.length
   const truncated =
     userMessageContent.length > maxContent ? userMessageContent.slice(0, maxContent - 1) + "…" : userMessageContent
   const message = prefix + truncated
 
-  const url = config.CODE_SERVER_URL ? `${config.CODE_SERVER_URL}/?folder=${lastUserMessage.cwd}` : undefined
+  const headers: Record<string, string> = {
+    "Content-Type": "text/plain",
+    Title: title,
+  }
 
-  const pushoverData: PushoverRequest = {
-    token: PUSHOVER_API_KEY,
-    user: PUSHOVER_USER_KEY,
-    message,
-    title,
-    ...(url && { url }),
-    ...(url && config.CODE_SERVER_URL_TITLE && { url_title: config.CODE_SERVER_URL_TITLE }),
-    ...(NOTIFICATION_TTL_MINUTES && { ttl: NOTIFICATION_TTL_MINUTES * 60 }),
-    sound: config.NOTIFICATION_SOUND,
+  if (config.CLICK_URL_PREFIX) {
+    headers["Click"] = `${config.CLICK_URL_PREFIX}${lastUserMessage.cwd}`
+  }
+
+  if (config.NTFY_TOKEN) {
+    headers["Authorization"] = `Bearer ${config.NTFY_TOKEN}`
+  } else if (config.NTFY_USERNAME && config.NTFY_PASSWORD) {
+    headers["Authorization"] =
+      `Basic ${Buffer.from(`${config.NTFY_USERNAME}:${config.NTFY_PASSWORD}`).toString("base64")}`
   }
 
   try {
-    const response = await fetch("https://api.pushover.net/1/messages.json", {
+    const response = await fetch(`${NTFY_URL}/${NTFY_TOPIC}`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(pushoverData),
+      headers,
+      body: message,
     })
 
     if (!response.ok) {
       const errorText = await response.text()
       throw new Error(`HTTP error! status: ${response.status}, body: ${errorText}`)
     }
-
-    const result = (await response.json()) as PushoverResponse
-
-    if (result.status !== 1) {
-      throw new Error(`Pushover API error: ${result.errors?.join(", ") || "Unknown error"}`)
-    }
   } catch (error) {
     console.error("Error sending notification:", error instanceof Error ? error.message : "Unknown error")
   }
+}
+
+function validateInput(input: unknown): ClaudeNotificationInput {
+  return InputSchema.parse(input)
 }
 
 function parseArgs(): { configPath?: string } {
@@ -356,9 +299,9 @@ async function main(): Promise<void> {
     }
 
     const rawInput = JSON.parse(stdinContent)
-    const inputData = InputSchema.parse(rawInput)
+    const inputData = validateInput(rawInput)
 
-    await sendPushoverNotification(config, inputData)
+    await sendNtfyNotification(config, inputData)
   } catch (error) {
     console.error("Error:", error instanceof Error ? error.message : "Unknown error")
     process.exit(1)
