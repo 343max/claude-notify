@@ -12,8 +12,26 @@ const InputSchema = z.object({
   transcript_path: z.string(),
   cwd: z.string(),
   permission_mode: z.string().optional(),
-  hook_event_name: z.string(),
-  stop_hook_active: z.boolean(),
+  hook_event_name: z.union([
+    z.literal("PermissionRequest"),
+    z.literal("PostToolUse"),
+    z.literal("PostToolUseFailure"),
+    z.literal("PreToolUse"),
+    z.literal("Stop"),
+    z.literal("SubagentStop"),
+    z.literal("TaskCompleted"),
+    z.literal("UserPromptSubmit"),
+    z.literal("ConfigChange"),
+    z.literal("Notification"),
+    z.literal("PreCompact"),
+    z.literal("SessionEnd"),
+    z.literal("SessionStart"),
+    z.literal("SubagentStart"),
+    z.literal("TeammateIdle"),
+    z.literal("WorktreeCreate"),
+    z.literal("WorktreeRemove"),
+  ]),
+  stop_hook_active: z.boolean().optional(),
   last_assistant_message: z.string().optional(),
 })
 
@@ -21,7 +39,7 @@ type ClaudeNotificationInput = z.infer<typeof InputSchema>
 
 const ConfigSchema = z
   .object({
-    NTFY_URL: z.string().min(1, "NTFY_URL cannot be empty").url("NTFY_URL must be a valid URL"),
+    NTFY_URL: z.string().url("NTFY_URL must be a valid URL").optional().default("https://ntfy.sh"),
     NTFY_TOPIC: z.string().min(1, "NTFY_TOPIC cannot be empty"),
     NTFY_TOKEN: z.string().optional(),
     NTFY_USERNAME: z.string().optional(),
@@ -213,7 +231,13 @@ async function sendNtfyNotification(config: Config, data: ClaudeNotificationInpu
   const projectName = basename(lastUserMessage.cwd)
   const userMessageContent = lastUserMessage.content
 
-  const title = `Claude Code - ${projectName}`
+  const titlePrefix =
+    data.hook_event_name === "Stop"
+      ? "Task completed"
+      : data.hook_event_name === "PermissionRequest"
+        ? "Permission Request"
+        : "Claude Code"
+  const title = `${titlePrefix} - ${projectName}`
   const prefix = `finished after ${Math.round(timeDifferenceSeconds)}s: `
   const maxContent = 4096 - prefix.length
   const truncated =
@@ -250,10 +274,6 @@ async function sendNtfyNotification(config: Config, data: ClaudeNotificationInpu
   } catch (error) {
     console.error("Error sending notification:", error instanceof Error ? error.message : "Unknown error")
   }
-}
-
-function validateInput(input: unknown): ClaudeNotificationInput {
-  return InputSchema.parse(input)
 }
 
 function parseArgs(): { configPath?: string } {
@@ -293,13 +313,15 @@ async function main(): Promise<void> {
     const config = loadConfig(configPath)
     const stdinContent = await readStdin()
 
+    console.error("Received input from stdin:", stdinContent)
+
     if (!stdinContent.trim()) {
       console.error("No input received from stdin")
       process.exit(1)
     }
 
     const rawInput = JSON.parse(stdinContent)
-    const inputData = validateInput(rawInput)
+    const inputData = InputSchema.parse(rawInput)
 
     await sendNtfyNotification(config, inputData)
   } catch (error) {
