@@ -10,8 +10,11 @@ import { getLastUserMessageContent } from "./src/getLastUserMessageContent"
 const InputSchema = z.object({
   session_id: z.string(),
   transcript_path: z.string(),
+  cwd: z.string(),
+  permission_mode: z.string().optional(),
   hook_event_name: z.string(),
   stop_hook_active: z.boolean(),
+  last_assistant_message: z.string().optional(),
 })
 
 type ClaudeNotificationInput = z.infer<typeof InputSchema>
@@ -310,10 +313,6 @@ async function sendPushoverNotification(config: Config, data: ClaudeNotification
   }
 }
 
-function validateInput(input: unknown): ClaudeNotificationInput {
-  return InputSchema.parse(input)
-}
-
 function parseArgs(): { configPath?: string } {
   const args = process.argv.slice(2)
   const result: { configPath?: string } = {}
@@ -357,7 +356,7 @@ async function main(): Promise<void> {
     }
 
     const rawInput = JSON.parse(stdinContent)
-    const inputData = validateInput(rawInput)
+    const inputData = InputSchema.parse(rawInput)
 
     await sendPushoverNotification(config, inputData)
   } catch (error) {
