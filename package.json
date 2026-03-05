@@ -19,7 +19,8 @@
   "devDependencies": {
     "@types/node": "^20.0.0",
     "bun-types": "^1.3.10",
-    "typescript": "^5.0.0"
+    "typescript": "^5.0.0",
+    "xo": "^1.2.3"
   },
   "keywords": [
     "claude",
@@ -28,5 +29,20 @@
     "cli"
   ],
   "author": "",
-  "license": "MIT"
+  "license": "MIT",
+  "xo": {
+    "space": true,
+    "semicolon": false,
+    "rules": {
+      "@stylistic/quotes": ["error", "double"],
+      "@typescript-eslint/naming-convention": "off",
+      "unicorn/filename-case": "off",
+      "unicorn/prefer-top-level-await": "off",
+      "unicorn/no-process-exit": "off",
+      "import-x/extensions": "off",
+      "n/prefer-global/process": "off",
+      "n/prefer-global/buffer": "off",
+      "@typescript-eslint/no-restricted-types": "off"
+    }
+  }
 }

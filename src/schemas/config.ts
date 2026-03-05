@@ -1,4 +1,4 @@
-import { z } from "zod"
+import {z} from "zod"
 
 export const ConfigSchema = z
   .object({
@@ -11,9 +11,9 @@ export const ConfigSchema = z
     AWAY_FROM_KEYBOARD_TIMEOUT: z.number().min(1).optional().nullable().default(null),
     LOCAL_CLICK_URL: z.string().optional(),
     REMOTE_CLICK_URL: z.string().optional(),
-    CLICK_URL_PREFIX: z.string().optional(), // deprecated: use REMOTE_CLICK_URL
+    CLICK_URL_PREFIX: z.string().optional(), // Deprecated: use REMOTE_CLICK_URL
   })
-  .refine((data) => !data.NTFY_USERNAME || !!data.NTFY_PASSWORD, {
+  .refine(data => !data.NTFY_USERNAME || Boolean(data.NTFY_PASSWORD), {
     message: "NTFY_PASSWORD is required when NTFY_USERNAME is set",
     path: ["NTFY_PASSWORD"],
   })

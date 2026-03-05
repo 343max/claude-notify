@@ -1,4 +1,4 @@
-import { type Config } from "./schemas/config"
+import {type Config} from "./schemas/config"
 
 export async function sendRemoteNotification(
   config: Config,
@@ -6,7 +6,7 @@ export async function sendRemoteNotification(
   message: string,
   clickUrl?: string,
 ): Promise<void> {
-  const { NTFY_URL, NTFY_TOPIC } = config
+  const {NTFY_URL, NTFY_TOPIC} = config
 
   const headers: Record<string, string> = {
     "Content-Type": "text/plain",
@@ -14,14 +14,14 @@ export async function sendRemoteNotification(
   }
 
   if (clickUrl) {
-    headers["Click"] = clickUrl
+    headers.Click = clickUrl
   }
 
   if (config.NTFY_TOKEN) {
-    headers["Authorization"] = `Bearer ${config.NTFY_TOKEN}`
+    headers.Authorization = `Bearer ${config.NTFY_TOKEN}`
   } else if (config.NTFY_USERNAME && config.NTFY_PASSWORD) {
-    headers["Authorization"] =
-      `Basic ${Buffer.from(`${config.NTFY_USERNAME}:${config.NTFY_PASSWORD}`).toString("base64")}`
+    headers.Authorization
+      = `Basic ${Buffer.from(`${config.NTFY_USERNAME}:${config.NTFY_PASSWORD}`).toString("base64")}`
   }
 
   try {

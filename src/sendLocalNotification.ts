@@ -7,7 +7,10 @@ export async function sendLocalNotification(
 
   if (terminalNotifier) {
     const args = [terminalNotifier, "-title", title, "-message", message]
-    if (clickUrl) args.push("-open", clickUrl)
+    if (clickUrl) {
+      args.push("-open", clickUrl)
+    }
+
     const proc = Bun.spawn(args)
     await proc.exited
   } else {

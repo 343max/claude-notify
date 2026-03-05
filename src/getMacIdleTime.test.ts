@@ -1,5 +1,5 @@
-import { expect, test } from "bun:test"
-import { getMacIdleTime } from "./getMacIdleTime"
+import {expect, test} from "bun:test"
+import {getMacIdleTime} from "./getMacIdleTime"
 
 test("returns a positive number of seconds", async () => {
   const seconds = await getMacIdleTime()

@@ -1,4 +1,4 @@
-import { z } from "zod"
+import {z} from "zod"
 
 // --- Enums ---
 
@@ -140,7 +140,7 @@ const BashProgressDataSchema = z.object({
 
 const AgentProgressDataSchema = z.object({
   type: z.literal("agent_progress"),
-  message: z.unknown().optional(), // can be a string or a full message record object
+  message: z.unknown().optional(), // Can be a string or a full message record object
   normalizedMessages: z.array(z.unknown()).optional(),
   agentId: z.string().optional(),
   prompt: z.string().optional(),

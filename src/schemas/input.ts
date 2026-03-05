@@ -1,4 +1,4 @@
-import { z } from "zod"
+import {z} from "zod"
 
 export const InputSchema = z.object({
   session_id: z.string(),

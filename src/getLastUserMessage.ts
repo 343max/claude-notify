@@ -1,9 +1,9 @@
-import { readFileSync } from "fs"
-import { z } from "zod"
-import { TranscriptRecordSchema } from "./schemas/transcript"
-import { getLastUserMessageContent } from "./getLastUserMessageContent"
+import {readFileSync} from "node:fs"
+import {z} from "zod"
+import {TranscriptRecordSchema} from "./schemas/transcript"
+import {getLastUserMessageContent} from "./getLastUserMessageContent"
 
-function parseLine(line: string): { content: string; cwd: string; timestamp: string } | null {
+function parseLine(line: string): {content: string; cwd: string; timestamp: string} | undefined {
   const parsed = TranscriptRecordSchema.parse(JSON.parse(line))
 
   if (parsed.type !== "user" || parsed.message.role !== "user") {
@@ -13,25 +13,25 @@ function parseLine(line: string): { content: string; cwd: string; timestamp: str
   const content = getLastUserMessageContent(parsed.message.content)
   if (content === null) {
     return null
-  } else {
-    return {
-      content,
-      cwd: parsed.cwd,
-      timestamp: parsed.timestamp,
-    }
+  }
+
+  return {
+    content,
+    cwd: parsed.cwd,
+    timestamp: parsed.timestamp,
   }
 }
 
-export async function getLastUserMessage(
-  transcriptPath: string
-): Promise<{ content: string; cwd: string; timestamp: string } | null> {
+export async function getLastUserMessage(transcriptPath: string): Promise<{content: string; cwd: string; timestamp: string} | undefined> {
   try {
-    const content = readFileSync(transcriptPath.replace(/^~/, process.env.HOME || ""), "utf8")
+    const content = readFileSync(transcriptPath.replace(/^~/, process.env.HOME ?? ""), "utf8")
     const lines = content.trim().split("\n")
 
     for (let i = lines.length - 1; i >= 0; i--) {
       const line = lines[i].trim()
-      if (!line) continue
+      if (!line) {
+        continue
+      }
 
       try {
         const userMessage = parseLine(line)
