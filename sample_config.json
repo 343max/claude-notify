@@ -6,6 +6,6 @@
   "NTFY_PASSWORD": "your-password",
   "BUSY_TIME": 20,
   "AWAY_FROM_KEYBOARD_TIMEOUT": 300,
-  "LOCAL_CLICK_URL": "vscode://file/",
-  "REMOTE_CLICK_URL": "https://your-code-server:8443/?folder="
+  "LOCAL_CLICK_URL": "vscode://file/{cwd}?windowId=_blank",
+  "REMOTE_CLICK_URL": "https://your-code-server:8443/?folder={cwd}"
 }

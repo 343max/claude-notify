@@ -61,24 +61,34 @@ Or Basic auth credentials:
 
 Two optional click URL fields let you open the project directly when tapping a notification.
 
-`LOCAL_CLICK_URL` — Used by the macOS local notification (requires `terminal-notifier`). The project path (`cwd`) is appended directly, so include any separator in the value.
+`LOCAL_CLICK_URL` — Used by the macOS local notification (requires `terminal-notifier`).
 
-`REMOTE_CLICK_URL` — Used by the ntfy push notification. Same appending behaviour.
+`REMOTE_CLICK_URL` — Used by the ntfy push notification.
 
-For a **code-server** instance (remote):
-
-```json
-{
-  "REMOTE_CLICK_URL": "https://your-code-server:8443/?folder="
-}
-```
+Use `{cwd}` as a placeholder for the project path. If omitted, the path is appended to the end of the URL.
 
 For **VS Code** on your local machine:
 
 ```json
 {
-  "LOCAL_CLICK_URL": "vscode://file/"
+  "LOCAL_CLICK_URL": "vscode://file/{cwd}?windowId=_blank"
 }
+```
+
+For a **code-server** instance (remote):
+
+```json
+{
+  "REMOTE_CLICK_URL": "https://your-code-server:8443/?folder={cwd}"
+}
+```
+
+## Testing your setup
+
+Run this to send a test notification to all channels immediately, bypassing all time thresholds:
+
+```sh
+bun claude-notify.ts --send-example-notification
 ```
 
 ## Setup

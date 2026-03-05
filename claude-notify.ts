@@ -1,6 +1,10 @@
 #!/usr/bin/env bun
 
 import { basename } from "path"
+
+function buildClickUrl(template: string, cwd: string): string {
+  return template.includes("{cwd}") ? template.replace("{cwd}", cwd) : `${template}${cwd}`
+}
 import { InputSchema } from "./src/schemas/input"
 import { loadConfig } from "./src/loadConfig"
 import { parseArgs } from "./src/parseArgs"
@@ -22,11 +26,11 @@ async function sendExampleNotification(config: ReturnType<typeof loadConfig>): P
   const title = "Example Notification - claude-notify"
   const body = `Test from ${cwd}`
 
-  const localClickUrl = config.LOCAL_CLICK_URL ? `${config.LOCAL_CLICK_URL}${cwd}` : undefined
+  const localClickUrl = config.LOCAL_CLICK_URL ? buildClickUrl(config.LOCAL_CLICK_URL, cwd) : undefined
   const remoteClickUrl = config.REMOTE_CLICK_URL
-    ? `${config.REMOTE_CLICK_URL}${cwd}`
+    ? buildClickUrl(config.REMOTE_CLICK_URL, cwd)
     : config.CLICK_URL_PREFIX
-      ? `${config.CLICK_URL_PREFIX}${cwd}`
+      ? buildClickUrl(config.CLICK_URL_PREFIX, cwd)
       : undefined
 
   console.log("Sending local notification…")
@@ -78,15 +82,15 @@ async function main(): Promise<void> {
         : lastUserMessage.content
 
     const localClickUrl = config.LOCAL_CLICK_URL
-      ? `${config.LOCAL_CLICK_URL}${lastUserMessage.cwd}`
+      ? buildClickUrl(config.LOCAL_CLICK_URL, lastUserMessage.cwd)
       : undefined
 
     await sendLocalNotification(title, body, localClickUrl)
 
     const remoteClickUrl = config.REMOTE_CLICK_URL
-      ? `${config.REMOTE_CLICK_URL}${lastUserMessage.cwd}`
+      ? buildClickUrl(config.REMOTE_CLICK_URL, lastUserMessage.cwd)
       : config.CLICK_URL_PREFIX
-        ? `${config.CLICK_URL_PREFIX}${lastUserMessage.cwd}`
+        ? buildClickUrl(config.CLICK_URL_PREFIX, lastUserMessage.cwd)
         : undefined
 
     if (config.AWAY_FROM_KEYBOARD_TIMEOUT !== null) {
