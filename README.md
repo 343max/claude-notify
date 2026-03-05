@@ -1,11 +1,15 @@
 # Claude Notify
 
-A command-line notification tool that integrates with Claude Code hooks to send notifications via [ntfy](https://ntfy.sh) when tasks complete.
+A command-line notification tool that integrates with Claude Code hooks to send notifications when tasks complete or need your attention.
+
+- **Local notification** (macOS notification center) — always fires after `BUSY_TIME`
+- **Remote notification** (via [ntfy](https://ntfy.sh)) — only fires when you've been away from your keyboard for `AWAY_FROM_KEYBOARD_TIMEOUT` seconds
 
 # Installation
 
 1. You need [bun](https://bun.sh)
-2. Create `~/.config/claude-notify.json`
+2. Optionally install [terminal-notifier](https://github.com/julienXX/terminal-notifier) for clickable local notifications: `brew install terminal-notifier`
+3. Create `~/.config/claude-notify.json`
 
 The minimum config is:
 
@@ -22,7 +26,15 @@ The minimum config is:
 
 `NTFY_TOPIC` — The topic name to publish notifications to.
 
-`BUSY_TIME` — Time in seconds a prompt has to run before you get notified (default: `20`). 20 seconds is the sweetspot for when you start drifting away from the output.
+`BUSY_TIME` — Minimum time in seconds a prompt has to run before any notification fires (default: `20`). Keeps quick back-and-forth turns silent.
+
+`AWAY_FROM_KEYBOARD_TIMEOUT` — Optional. Seconds of keyboard/mouse inactivity before the remote (phone) notification is sent. When set, the phone only buzzes if you've been away from your Mac for at least this long. When omitted, remote notifications always fire (original behaviour).
+
+```json
+{
+  "AWAY_FROM_KEYBOARD_TIMEOUT": 300
+}
+```
 
 ### Authorization
 
@@ -45,15 +57,19 @@ Or Basic auth credentials:
 }
 ```
 
-### Click URL
+### Click URLs
 
-`CLICK_URL_PREFIX` — Optional. When set, the notification includes a tappable link. The value is used as a URL prefix and the project path (`cwd`) is appended directly — so include any path/query separator in the prefix itself.
+Two optional click URL fields let you open the project directly when tapping a notification.
 
-For a remote **code-server** instance:
+`LOCAL_CLICK_URL` — Used by the macOS local notification (requires `terminal-notifier`). The project path (`cwd`) is appended directly, so include any separator in the value.
+
+`REMOTE_CLICK_URL` — Used by the ntfy push notification. Same appending behaviour.
+
+For a **code-server** instance (remote):
 
 ```json
 {
-  "CLICK_URL_PREFIX": "https://your-code-server:8443/?folder="
+  "REMOTE_CLICK_URL": "https://your-code-server:8443/?folder="
 }
 ```
 
@@ -61,15 +77,15 @@ For **VS Code** on your local machine:
 
 ```json
 {
-  "CLICK_URL_PREFIX": "vscode://file/"
+  "LOCAL_CLICK_URL": "vscode://file/"
 }
 ```
 
 ## Setup
 
-3. Run `claude`, type `/hooks` and pick the stop hook. Add the full path to `claude-notify.ts`.
+4. Run `claude`, type `/hooks` and pick the stop hook. Add the full path to `claude-notify.ts`.
 
-Afterwards you should receive a notification when a long-running prompt finishes.
+Afterwards you'll receive a local notification whenever a prompt finishes, and a phone notification only when you've been away from your Mac.
 
 ## License
 

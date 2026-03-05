@@ -8,7 +8,10 @@ export const ConfigSchema = z
     NTFY_USERNAME: z.string().optional(),
     NTFY_PASSWORD: z.string().optional(),
     BUSY_TIME: z.number().min(1, "BUSY_TIME must be at least 1 second").optional().default(20),
-    CLICK_URL_PREFIX: z.string().optional(),
+    AWAY_FROM_KEYBOARD_TIMEOUT: z.number().min(1).optional().nullable().default(null),
+    LOCAL_CLICK_URL: z.string().optional(),
+    REMOTE_CLICK_URL: z.string().optional(),
+    CLICK_URL_PREFIX: z.string().optional(), // deprecated: use REMOTE_CLICK_URL
   })
   .refine((data) => !data.NTFY_USERNAME || !!data.NTFY_PASSWORD, {
     message: "NTFY_PASSWORD is required when NTFY_USERNAME is set",
