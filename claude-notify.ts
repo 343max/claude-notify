@@ -19,8 +19,6 @@ async function main(): Promise<void> {
     const config = loadConfig(configPath)
     const stdinContent = await readStdin()
 
-    console.error("Received input from stdin:", stdinContent)
-
     if (!stdinContent.trim()) {
       console.error("No input received from stdin")
       process.exit(1)

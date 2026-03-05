@@ -101,8 +101,8 @@ const UsageSchema = z.object({
   cache_creation_input_tokens: z.number(),
   cache_read_input_tokens: z.number(),
   cache_creation: CacheCreationSchema,
-  service_tier: z.string().optional(),
-  inference_geo: z.string().optional(),
+  service_tier: z.string().nullish(),
+  inference_geo: z.string().nullish(),
 })
 
 // --- Message Envelopes ---
