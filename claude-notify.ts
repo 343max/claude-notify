@@ -5,7 +5,9 @@ import { basename } from "path"
 function buildClickUrl(template: string, cwd: string): string {
   return template.includes("{cwd}") ? template.replace("{cwd}", cwd) : `${template}${cwd}`
 }
+
 import { InputSchema } from "./src/schemas/input"
+import { formatPermissionBody } from "./src/formatPermissionBody"
 import { loadConfig } from "./src/loadConfig"
 import { parseArgs } from "./src/parseArgs"
 import { getLastUserMessage } from "./src/getLastUserMessage"
@@ -64,8 +66,7 @@ async function main(): Promise<void> {
     const lastUserMessage = await getLastUserMessage(inputData.transcript_path)
     if (!lastUserMessage) return
 
-    const timeDifferenceSeconds =
-      (Date.now() - new Date(lastUserMessage.timestamp).getTime()) / 1000
+    const timeDifferenceSeconds = (Date.now() - new Date(lastUserMessage.timestamp).getTime()) / 1000
     if (timeDifferenceSeconds < config.BUSY_TIME) return
 
     const projectName = basename(lastUserMessage.cwd)
@@ -77,9 +78,11 @@ async function main(): Promise<void> {
           : "Claude Code"
     const title = `${titlePrefix} - ${projectName}`
     const body =
-      lastUserMessage.content.length > 4096
-        ? lastUserMessage.content.slice(0, 4095) + "…"
-        : lastUserMessage.content
+      inputData.hook_event_name === "PermissionRequest" && inputData.tool_name && inputData.tool_input
+        ? formatPermissionBody(inputData.tool_name, inputData.tool_input)
+        : lastUserMessage.content.length > 4096
+          ? lastUserMessage.content.slice(0, 4095) + "…"
+          : lastUserMessage.content
 
     const localClickUrl = config.LOCAL_CLICK_URL
       ? buildClickUrl(config.LOCAL_CLICK_URL, lastUserMessage.cwd)
@@ -93,12 +96,9 @@ async function main(): Promise<void> {
         ? buildClickUrl(config.CLICK_URL_PREFIX, lastUserMessage.cwd)
         : undefined
 
-    if (config.AWAY_FROM_KEYBOARD_TIMEOUT !== null) {
-      const idleSeconds = await getMacIdleTime()
-      if (idleSeconds < config.AWAY_FROM_KEYBOARD_TIMEOUT) return
+    if (config.AWAY_FROM_KEYBOARD_TIMEOUT === null || (await getMacIdleTime()) > config.AWAY_FROM_KEYBOARD_TIMEOUT) {
+      await sendRemoteNotification(config, title, body, remoteClickUrl)
     }
-
-    await sendRemoteNotification(config, title, body, remoteClickUrl)
   } catch (error) {
     console.error("Error:", error instanceof Error ? error.message : "Unknown error")
     process.exit(1)

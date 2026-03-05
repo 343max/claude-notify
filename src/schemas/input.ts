@@ -26,6 +26,9 @@ export const InputSchema = z.object({
   ]),
   stop_hook_active: z.boolean().optional(),
   last_assistant_message: z.string().optional(),
+  tool_name: z.string().optional(),
+  tool_input: z.record(z.unknown()).optional(),
+  permission_suggestions: z.array(z.record(z.unknown())).optional(),
 })
 
 export type ClaudeNotificationInput = z.infer<typeof InputSchema>
