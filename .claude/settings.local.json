@@ -1,0 +1,15 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write|NotebookEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cd /Users/max/Projects/claude-notify && bun run xo --quiet 2>&1 || true"
+          }
+        ]
+      }
+    ]
+  }
+}
