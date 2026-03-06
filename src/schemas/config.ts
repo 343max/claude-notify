@@ -1,4 +1,4 @@
-import { z } from "zod";
+import {z} from "zod"
 
 export const ConfigSchema = z
   .object({
@@ -16,9 +16,9 @@ export const ConfigSchema = z
     LOCAL_CLICK_URL: z.string().optional(),
     REMOTE_CLICK_URL: z.string().optional(),
   })
-  .refine((data) => !data.NTFY_USERNAME || Boolean(data.NTFY_PASSWORD), {
+  .refine(data => !data.NTFY_USERNAME || Boolean(data.NTFY_PASSWORD), {
     message: "NTFY_PASSWORD is required when NTFY_USERNAME is set",
     path: ["NTFY_PASSWORD"],
-  });
+  })
 
-export type Config = z.infer<typeof ConfigSchema>;
+export type Config = z.infer<typeof ConfigSchema>
