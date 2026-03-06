@@ -37,12 +37,11 @@
       "@stylistic/quotes": ["error", "double"],
       "@typescript-eslint/naming-convention": "off",
       "unicorn/filename-case": "off",
-      "unicorn/prefer-top-level-await": "off",
       "unicorn/no-process-exit": "off",
       "import-x/extensions": "off",
-      "n/prefer-global/process": "off",
-      "n/prefer-global/buffer": "off",
-      "@typescript-eslint/no-restricted-types": "off"
+      "n/prefer-global/process": "error",
+      "n/prefer-global/buffer": "error",
+      "@typescript-eslint/no-restricted-types": "error"
     }
   }
 }

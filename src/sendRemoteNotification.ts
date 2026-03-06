@@ -1,3 +1,4 @@
+import {Buffer} from "node:buffer"
 import {type Config} from "./schemas/config"
 
 export async function sendRemoteNotification(

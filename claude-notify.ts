@@ -1,5 +1,7 @@
 #!/usr/bin/env bun
 
+import process from "node:process"
+import {Buffer} from "node:buffer"
 import {basename} from "node:path"
 import {InputSchema} from "./src/schemas/input"
 import {formatPermissionBody} from "./src/formatPermissionBody"
@@ -110,4 +112,4 @@ async function main(): Promise<void> {
   }
 }
 
-void main()
+await main()

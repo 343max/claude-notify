@@ -1,3 +1,5 @@
+import process from "node:process"
+
 export function parseArgs(): {configPath?: string; sendExample?: boolean} {
   const args = process.argv.slice(2)
   const result: {configPath?: string; sendExample?: boolean} = {}
