@@ -8,12 +8,14 @@ import {formatPermissionBody} from "./src/formatPermissionBody"
 import {loadConfig} from "./src/loadConfig"
 import {parseArgs} from "./src/parseArgs"
 import {getLastUserMessage} from "./src/getLastUserMessage"
-import {getMacIdleTime} from "./src/getMacIdleTime"
+import {getIdleTime} from "./src/getIdleTime"
 import {sendLocalNotification} from "./src/sendLocalNotification"
 import {sendRemoteNotification} from "./src/sendRemoteNotification"
 
 function buildClickUrl(template: string, cwd: string): string {
-  return template.includes("{cwd}") ? template.replace("{cwd}", cwd) : `${template}${cwd}`
+  return template.includes("{cwd}")
+    ? template.replace("{cwd}", cwd)
+    : `${template}${cwd}`
 }
 
 async function readStdin(): Promise<string> {
@@ -30,12 +32,12 @@ async function sendExampleNotification(config: ReturnType<typeof loadConfig>): P
   const title = "Example Notification - claude-notify"
   const body = `Test from ${cwd}`
 
-  const localClickUrl = config.LOCAL_CLICK_URL ? buildClickUrl(config.LOCAL_CLICK_URL, cwd) : undefined
+  const localClickUrl = config.LOCAL_CLICK_URL
+    ? buildClickUrl(config.LOCAL_CLICK_URL, cwd)
+    : undefined
   const remoteClickUrl = config.REMOTE_CLICK_URL
     ? buildClickUrl(config.REMOTE_CLICK_URL, cwd)
-    : (config.CLICK_URL_PREFIX
-      ? buildClickUrl(config.CLICK_URL_PREFIX, cwd)
-      : undefined)
+    : undefined
 
   console.log("Sending local notification…")
   await sendLocalNotification(title, body, localClickUrl)
@@ -71,7 +73,8 @@ async function main(): Promise<void> {
       return
     }
 
-    const timeDifferenceSeconds = (Date.now() - new Date(lastUserMessage.timestamp).getTime()) / 1000
+    const timeDifferenceSeconds
+      = (Date.now() - new Date(lastUserMessage.timestamp).getTime()) / 1000
     if (timeDifferenceSeconds < config.BUSY_TIME) {
       return
     }
@@ -85,7 +88,9 @@ async function main(): Promise<void> {
           : "Claude Code")
     const title = `${titlePrefix} - ${projectName}`
     const body
-      = inputData.hook_event_name === "PermissionRequest" && inputData.tool_name && inputData.tool_input
+      = inputData.hook_event_name === "PermissionRequest"
+        && inputData.tool_name
+        && inputData.tool_input
         ? formatPermissionBody(inputData.tool_name, inputData.tool_input)
         : (lastUserMessage.content.length > 4096
           ? lastUserMessage.content.slice(0, 4095) + "…"
@@ -99,15 +104,21 @@ async function main(): Promise<void> {
 
     const remoteClickUrl = config.REMOTE_CLICK_URL
       ? buildClickUrl(config.REMOTE_CLICK_URL, lastUserMessage.cwd)
-      : (config.CLICK_URL_PREFIX
-        ? buildClickUrl(config.CLICK_URL_PREFIX, lastUserMessage.cwd)
-        : undefined)
+      : undefined
 
-    if (config.AWAY_FROM_KEYBOARD_TIMEOUT === null || (await getMacIdleTime()) > config.AWAY_FROM_KEYBOARD_TIMEOUT) {
+    const idleTime = await getIdleTime()
+    if (
+      idleTime === undefined
+      || config.AWAY_FROM_KEYBOARD_TIMEOUT === null
+      || idleTime > config.AWAY_FROM_KEYBOARD_TIMEOUT
+    ) {
       await sendRemoteNotification(config, title, body, remoteClickUrl)
     }
   } catch (error) {
-    console.error("Error:", error instanceof Error ? error.message : "Unknown error")
+    console.error(
+      "Error:",
+      error instanceof Error ? error.message : "Unknown error",
+    )
     process.exit(1)
   }
 }

@@ -5,7 +5,8 @@ import {homedir} from "node:os"
 import {ConfigSchema, type Config} from "./schemas/config"
 
 export function loadConfig(customConfigPath?: string): Config {
-  const configPath = customConfigPath ?? join(homedir(), ".config", "claude-notify.json")
+  const configPath
+    = customConfigPath ?? join(homedir(), ".config", "claude-notify.json")
 
   if (!existsSync(configPath)) {
     console.error([
@@ -20,7 +21,6 @@ export function loadConfig(customConfigPath?: string): Config {
       "  \"NTFY_URL\": \"https://ntfy.sh\",",
       "  \"NTFY_TOPIC\": \"my-claude-notifications\",",
       "  \"BUSY_TIME\": 20,",
-      "  \"CLICK_URL_PREFIX\": \"https://your-code-server:8443/?folder=\",",
       "  \"CLICK_URL_TITLE\": \"Open in Code Server\"",
       "}",
       "",
@@ -48,7 +48,6 @@ export function loadConfig(customConfigPath?: string): Config {
         "  \"NTFY_URL\": \"https://ntfy.sh\",",
         "  \"NTFY_TOPIC\": \"my-claude-notifications\",",
         "  \"BUSY_TIME\": 20,",
-        "  \"CLICK_URL_PREFIX\": \"https://your-code-server:8443/?folder=\",",
         "  \"CLICK_URL_TITLE\": \"Open in Code Server\"",
         "}",
         "",
@@ -63,7 +62,8 @@ export function loadConfig(customConfigPath?: string): Config {
         "❌ Invalid configuration",
         "",
         "The following configuration errors were found:",
-        ...validationResult.error.errors.map((error, index) => `  ${index + 1}. ${error.path.join(".")}: ${error.message}`),
+        ...validationResult.error.errors.map((error, index) =>
+          `  ${index + 1}. ${error.path.join(".")}: ${error.message}`),
         "",
         "Expected configuration format:",
         "{",
@@ -71,7 +71,6 @@ export function loadConfig(customConfigPath?: string): Config {
         "  \"NTFY_TOPIC\": \"my-claude-notifications\",",
         "  \"NTFY_TOKEN\": \"your-bearer-token\",",
         "  \"BUSY_TIME\": 20,",
-        "  \"CLICK_URL_PREFIX\": \"https://your-code-server:8443/?folder=\",",
         "  \"CLICK_URL_TITLE\": \"Open in Code Server\"",
         "}",
         "",
@@ -81,7 +80,8 @@ export function loadConfig(customConfigPath?: string): Config {
         "- NTFY_TOKEN: Optional, Bearer token for authorization",
         "- NTFY_USERNAME / NTFY_PASSWORD: Optional, Basic auth credentials (both required if used)",
         "- BUSY_TIME: Optional, minimum delay in seconds before notifying (default: 20)",
-        "- CLICK_URL_PREFIX: Optional, URL prefix for a tappable link in the notification (cwd is appended)",
+        "- LOCAL_CLICK_URL: Optional, URL prefix for a tappable link in the local notification (cwd is appended)",
+        "- REMOTE_CLICK_URL: Optional, URL prefix for a tappable link in the remote notification (cwd is appended)",
         "- CLICK_URL_TITLE: Optional, label for the link in the notification",
         "",
         "Get started with ntfy at: https://ntfy.sh/",
@@ -92,7 +92,10 @@ export function loadConfig(customConfigPath?: string): Config {
 
     return validationResult.data
   } catch (error) {
-    console.error("❌ Error reading configuration file:", error instanceof Error ? error.message : "Unknown error")
+    console.error(
+      "❌ Error reading configuration file:",
+      error instanceof Error ? error.message : "Unknown error",
+    )
     process.exit(1)
   }
 }
