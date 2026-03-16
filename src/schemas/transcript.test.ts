@@ -61,3 +61,20 @@ test("parses assistant record with Agent tool_use block", () => {
     }
   }
 })
+
+test("parses queue-operation record with popAll operation", () => {
+  const record = {
+    type: "queue-operation",
+    operation: "popAll",
+    timestamp: "2026-03-16T16:29:19.652Z",
+    sessionId: "917286b2-60e5-4a66-888b-950df8cf99f9",
+    content: "code .",
+  }
+
+  expect(() => TranscriptRecordSchema.parse(record)).not.toThrow()
+  const parsed = TranscriptRecordSchema.parse(record)
+  expect(parsed.type).toBe("queue-operation")
+  if (parsed.type === "queue-operation") {
+    expect(parsed.operation).toBe("popAll")
+  }
+})

@@ -26,7 +26,7 @@ const McpToolNameSchema = z.string().regex(/^mcp__/)
 
 const ToolNameSchema = z.union([BuiltInToolNameSchema, McpToolNameSchema])
 
-const QueueOperationSchema = z.enum(["enqueue", "dequeue", "remove"])
+const QueueOperationSchema = z.enum(["enqueue", "dequeue", "remove", "popAll"])
 
 const PermissionModeSchema = z.enum(["plan", "bypassPermissions", "acceptEdits", "default"])
 
