@@ -3,6 +3,7 @@ import {z} from "zod"
 // --- Enums ---
 
 const BuiltInToolNameSchema = z.enum([
+  "Agent",
   "AskUserQuestion",
   "Bash",
   "Edit",
