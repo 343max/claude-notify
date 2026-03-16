@@ -41,7 +41,7 @@ test("parses assistant record with Agent tool_use block", () => {
         input_tokens: 3,
         output_tokens: 381,
         cache_creation_input_tokens: 0,
-        cache_read_input_tokens: 16374,
+        cache_read_input_tokens: 16_374,
         cache_creation: {
           ephemeral_5m_input_tokens: 0,
           ephemeral_1h_input_tokens: 0,
